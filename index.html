@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Automatismi</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>(function(global,factory){typeof exports==="object"&&typeof module!=="undefined"?module.exports=factory():typeof define==="function"&&define.amd?define(factory):(global=global||self,global.morphdom=factory())})(this,function(){"use strict";var DOCUMENT_FRAGMENT_NODE=11;function morphAttrs(fromNode,toNode){var toNodeAttrs=toNode.attributes;var attr;var attrName;var attrNamespaceURI;var attrValue;var fromValue;if(toNode.nodeType===DOCUMENT_FRAGMENT_NODE||fromNode.nodeType===DOCUMENT_FRAGMENT_NODE){return}for(var i=toNodeAttrs.length-1;i>=0;i--){attr=toNodeAttrs[i];attrName=attr.name;attrNamespaceURI=attr.namespaceURI;attrValue=attr.value;if(attrNamespaceURI){attrName=attr.localName||attrName;fromValue=fromNode.getAttributeNS(attrNamespaceURI,attrName);if(fromValue!==attrValue){if(attr.prefix==="xmlns"){attrName=attr.name}fromNode.setAttributeNS(attrNamespaceURI,attrName,attrValue)}}else{fromValue=fromNode.getAttribute(attrName);if(fromValue!==attrValue){fromNode.setAttribute(attrName,attrValue)}}}var fromNodeAttrs=fromNode.attributes;for(var d=fromNodeAttrs.length-1;d>=0;d--){attr=fromNodeAttrs[d];attrName=attr.name;attrNamespaceURI=attr.namespaceURI;if(attrNamespaceURI){attrName=attr.localName||attrName;if(!toNode.hasAttributeNS(attrNamespaceURI,attrName)){fromNode.removeAttributeNS(attrNamespaceURI,attrName)}}else{if(!toNode.hasAttribute(attrName)){fromNode.removeAttribute(attrName)}}}}var range;var NS_XHTML="http://www.w3.org/1999/xhtml";var doc=typeof document==="undefined"?undefined:document;var HAS_TEMPLATE_SUPPORT=!!doc&&"content"in doc.createElement("template");var HAS_RANGE_SUPPORT=!!doc&&doc.createRange&&"createContextualFragment"in doc.createRange();function createFragmentFromTemplate(str){var template=doc.createElement("template");template.innerHTML=str;return template.content.childNodes[0]}function createFragmentFromRange(str){if(!range){range=doc.createRange();range.selectNode(doc.body)}var fragment=range.createContextualFragment(str);return fragment.childNodes[0]}function createFragmentFromWrap(str){var fragment=doc.createElement("body");fragment.innerHTML=str;return fragment.childNodes[0]}function toElement(str){str=str.trim();if(HAS_TEMPLATE_SUPPORT){return createFragmentFromTemplate(str)}else if(HAS_RANGE_SUPPORT){return createFragmentFromRange(str)}return createFragmentFromWrap(str)}function compareNodeNames(fromEl,toEl){var fromNodeName=fromEl.nodeName;var toNodeName=toEl.nodeName;var fromCodeStart,toCodeStart;if(fromNodeName===toNodeName){return true}fromCodeStart=fromNodeName.charCodeAt(0);toCodeStart=toNodeName.charCodeAt(0);if(fromCodeStart<=90&&toCodeStart>=97){return fromNodeName===toNodeName.toUpperCase()}else if(toCodeStart<=90&&fromCodeStart>=97){return toNodeName===fromNodeName.toUpperCase()}else{return false}}function createElementNS(name,namespaceURI){return!namespaceURI||namespaceURI===NS_XHTML?doc.createElement(name):doc.createElementNS(namespaceURI,name)}function moveChildren(fromEl,toEl){var curChild=fromEl.firstChild;while(curChild){var nextChild=curChild.nextSibling;toEl.appendChild(curChild);curChild=nextChild}return toEl}function syncBooleanAttrProp(fromEl,toEl,name){if(fromEl[name]!==toEl[name]){fromEl[name]=toEl[name];if(fromEl[name]){fromEl.setAttribute(name,"")}else{fromEl.removeAttribute(name)}}}var specialElHandlers={OPTION:function(fromEl,toEl){var parentNode=fromEl.parentNode;if(parentNode){var parentName=parentNode.nodeName.toUpperCase();if(parentName==="OPTGROUP"){parentNode=parentNode.parentNode;parentName=parentNode&&parentNode.nodeName.toUpperCase()}if(parentName==="SELECT"&&!parentNode.hasAttribute("multiple")){if(fromEl.hasAttribute("selected")&&!toEl.selected){fromEl.setAttribute("selected","selected");fromEl.removeAttribute("selected")}parentNode.selectedIndex=-1}}syncBooleanAttrProp(fromEl,toEl,"selected")},INPUT:function(fromEl,toEl){syncBooleanAttrProp(fromEl,toEl,"checked");syncBooleanAttrProp(fromEl,toEl,"disabled");if(fromEl.value!==toEl.value){fromEl.value=toEl.value}if(!toEl.hasAttribute("value")){fromEl.removeAttribute("value")}},TEXTAREA:function(fromEl,toEl){var newValue=toEl.value;if(fromEl.value!==newValue){fromEl.value=newValue}var firstChild=fromEl.firstChild;if(firstChild){var oldValue=firstChild.nodeValue;if(oldValue==newValue||!newValue&&oldValue==fromEl.placeholder){return}firstChild.nodeValue=newValue}},SELECT:function(fromEl,toEl){if(!toEl.hasAttribute("multiple")){var selectedIndex=-1;var i=0;var curChild=fromEl.firstChild;var optgroup;var nodeName;while(curChild){nodeName=curChild.nodeName&&curChild.nodeName.toUpperCase();if(nodeName==="OPTGROUP"){optgroup=curChild;curChild=optgroup.firstChild}else{if(nodeName==="OPTION"){if(curChild.hasAttribute("selected")){selectedIndex=i;break}i++}curChild=curChild.nextSibling;if(!curChild&&optgroup){curChild=optgroup.nextSibling;optgroup=null}}}fromEl.selectedIndex=selectedIndex}}};var ELEMENT_NODE=1;var DOCUMENT_FRAGMENT_NODE$1=11;var TEXT_NODE=3;var COMMENT_NODE=8;function noop(){}function defaultGetNodeKey(node){if(node){return node.getAttribute&&node.getAttribute("id")||node.id}}function morphdomFactory(morphAttrs){return function morphdom(fromNode,toNode,options){if(!options){options={}}if(typeof toNode==="string"){if(fromNode.nodeName==="#document"||fromNode.nodeName==="HTML"||fromNode.nodeName==="BODY"){var toNodeHtml=toNode;toNode=doc.createElement("html");toNode.innerHTML=toNodeHtml}else{toNode=toElement(toNode)}}else if(toNode.nodeType===DOCUMENT_FRAGMENT_NODE$1){toNode=toNode.firstElementChild}var getNodeKey=options.getNodeKey||defaultGetNodeKey;var onBeforeNodeAdded=options.onBeforeNodeAdded||noop;var onNodeAdded=options.onNodeAdded||noop;var onBeforeElUpdated=options.onBeforeElUpdated||noop;var onElUpdated=options.onElUpdated||noop;var onBeforeNodeDiscarded=options.onBeforeNodeDiscarded||noop;var onNodeDiscarded=options.onNodeDiscarded||noop;var onBeforeElChildrenUpdated=options.onBeforeElChildrenUpdated||noop;var skipFromChildren=options.skipFromChildren||noop;var addChild=options.addChild||function(parent,child){return parent.appendChild(child)};var childrenOnly=options.childrenOnly===true;var fromNodesLookup=Object.create(null);var keyedRemovalList=[];function addKeyedRemoval(key){keyedRemovalList.push(key)}function walkDiscardedChildNodes(node,skipKeyedNodes){if(node.nodeType===ELEMENT_NODE){var curChild=node.firstChild;while(curChild){var key=undefined;if(skipKeyedNodes&&(key=getNodeKey(curChild))){addKeyedRemoval(key)}else{onNodeDiscarded(curChild);if(curChild.firstChild){walkDiscardedChildNodes(curChild,skipKeyedNodes)}}curChild=curChild.nextSibling}}}function removeNode(node,parentNode,skipKeyedNodes){if(onBeforeNodeDiscarded(node)===false){return}if(parentNode){parentNode.removeChild(node)}onNodeDiscarded(node);walkDiscardedChildNodes(node,skipKeyedNodes)}function indexTree(node){if(node.nodeType===ELEMENT_NODE||node.nodeType===DOCUMENT_FRAGMENT_NODE$1){var curChild=node.firstChild;while(curChild){var key=getNodeKey(curChild);if(key){fromNodesLookup[key]=curChild}indexTree(curChild);curChild=curChild.nextSibling}}}indexTree(fromNode);function handleNodeAdded(el){onNodeAdded(el);var curChild=el.firstChild;while(curChild){var nextSibling=curChild.nextSibling;var key=getNodeKey(curChild);if(key){var unmatchedFromEl=fromNodesLookup[key];if(unmatchedFromEl&&compareNodeNames(curChild,unmatchedFromEl)){curChild.parentNode.replaceChild(unmatchedFromEl,curChild);morphEl(unmatchedFromEl,curChild)}else{handleNodeAdded(curChild)}}else{handleNodeAdded(curChild)}curChild=nextSibling}}function cleanupFromEl(fromEl,curFromNodeChild,curFromNodeKey){while(curFromNodeChild){var fromNextSibling=curFromNodeChild.nextSibling;if(curFromNodeKey=getNodeKey(curFromNodeChild)){addKeyedRemoval(curFromNodeKey)}else{removeNode(curFromNodeChild,fromEl,true)}curFromNodeChild=fromNextSibling}}function morphEl(fromEl,toEl,childrenOnly){var toElKey=getNodeKey(toEl);if(toElKey){delete fromNodesLookup[toElKey]}if(!childrenOnly){var beforeUpdateResult=onBeforeElUpdated(fromEl,toEl);if(beforeUpdateResult===false){return}else if(beforeUpdateResult instanceof HTMLElement){fromEl=beforeUpdateResult;indexTree(fromEl)}morphAttrs(fromEl,toEl);onElUpdated(fromEl);if(onBeforeElChildrenUpdated(fromEl,toEl)===false){return}}if(fromEl.nodeName!=="TEXTAREA"){morphChildren(fromEl,toEl)}else{specialElHandlers.TEXTAREA(fromEl,toEl)}}function morphChildren(fromEl,toEl){var skipFrom=skipFromChildren(fromEl,toEl);var curToNodeChild=toEl.firstChild;var curFromNodeChild=fromEl.firstChild;var curToNodeKey;var curFromNodeKey;var fromNextSibling;var toNextSibling;var matchingFromEl;outer:while(curToNodeChild){toNextSibling=curToNodeChild.nextSibling;curToNodeKey=getNodeKey(curToNodeChild);while(!skipFrom&&curFromNodeChild){fromNextSibling=curFromNodeChild.nextSibling;if(curToNodeChild.isSameNode&&curToNodeChild.isSameNode(curFromNodeChild)){curToNodeChild=toNextSibling;curFromNodeChild=fromNextSibling;continue outer}curFromNodeKey=getNodeKey(curFromNodeChild);var curFromNodeType=curFromNodeChild.nodeType;var isCompatible=undefined;if(curFromNodeType===curToNodeChild.nodeType){if(curFromNodeType===ELEMENT_NODE){if(curToNodeKey){if(curToNodeKey!==curFromNodeKey){if(matchingFromEl=fromNodesLookup[curToNodeKey]){if(fromNextSibling===matchingFromEl){isCompatible=false}else{fromEl.insertBefore(matchingFromEl,curFromNodeChild);if(curFromNodeKey){addKeyedRemoval(curFromNodeKey)}else{removeNode(curFromNodeChild,fromEl,true)}curFromNodeChild=matchingFromEl;curFromNodeKey=getNodeKey(curFromNodeChild)}}else{isCompatible=false}}}else if(curFromNodeKey){isCompatible=false}isCompatible=isCompatible!==false&&compareNodeNames(curFromNodeChild,curToNodeChild);if(isCompatible){morphEl(curFromNodeChild,curToNodeChild)}}else if(curFromNodeType===TEXT_NODE||curFromNodeType==COMMENT_NODE){isCompatible=true;if(curFromNodeChild.nodeValue!==curToNodeChild.nodeValue){curFromNodeChild.nodeValue=curToNodeChild.nodeValue}}}if(isCompatible){curToNodeChild=toNextSibling;curFromNodeChild=fromNextSibling;continue outer}if(curFromNodeKey){addKeyedRemoval(curFromNodeKey)}else{removeNode(curFromNodeChild,fromEl,true)}curFromNodeChild=fromNextSibling}if(curToNodeKey&&(matchingFromEl=fromNodesLookup[curToNodeKey])&&compareNodeNames(matchingFromEl,curToNodeChild)){if(!skipFrom){addChild(fromEl,matchingFromEl)}morphEl(matchingFromEl,curToNodeChild)}else{var onBeforeNodeAddedResult=onBeforeNodeAdded(curToNodeChild);if(onBeforeNodeAddedResult!==false){if(onBeforeNodeAddedResult){curToNodeChild=onBeforeNodeAddedResult}if(curToNodeChild.actualize){curToNodeChild=curToNodeChild.actualize(fromEl.ownerDocument||doc)}addChild(fromEl,curToNodeChild);handleNodeAdded(curToNodeChild)}}curToNodeChild=toNextSibling;curFromNodeChild=fromNextSibling}cleanupFromEl(fromEl,curFromNodeChild,curFromNodeKey);var specialElHandler=specialElHandlers[fromEl.nodeName];if(specialElHandler){specialElHandler(fromEl,toEl)}}var morphedNode=fromNode;var morphedNodeType=morphedNode.nodeType;var toNodeType=toNode.nodeType;if(!childrenOnly){if(morphedNodeType===ELEMENT_NODE){if(toNodeType===ELEMENT_NODE){if(!compareNodeNames(fromNode,toNode)){onNodeDiscarded(fromNode);morphedNode=moveChildren(fromNode,createElementNS(toNode.nodeName,toNode.namespaceURI))}}else{morphedNode=toNode}}else if(morphedNodeType===TEXT_NODE||morphedNodeType===COMMENT_NODE){if(toNodeType===morphedNodeType){if(morphedNode.nodeValue!==toNode.nodeValue){morphedNode.nodeValue=toNode.nodeValue}return morphedNode}else{morphedNode=toNode}}}if(morphedNode===toNode){onNodeDiscarded(fromNode)}else{if(toNode.isSameNode&&toNode.isSameNode(morphedNode)){return}morphEl(morphedNode,toNode,childrenOnly);if(keyedRemovalList){for(var i=0,len=keyedRemovalList.length;i<len;i++){var elToRemove=fromNodesLookup[keyedRemovalList[i]];if(elToRemove){removeNode(elToRemove,elToRemove.parentNode,false)}}}}if(!childrenOnly&&morphedNode!==fromNode&&fromNode.parentNode){if(morphedNode.actualize){morphedNode=morphedNode.actualize(fromNode.ownerDocument||doc)}fromNode.parentNode.replaceChild(morphedNode,fromNode)}return morphedNode}}var morphdom=morphdomFactory(morphAttrs);return morphdom});</script>
+<script>/* dc-lite: motore minimo per le pagine dell'Area di lavoro del portale Next.
+   Legge il modello dentro <x-dc> (con {{...}}, <sc-for>, <sc-if>, onClick=...)
+   e lo ridisegna a ogni cambio di stato, toccando solo ciò che cambia (morphdom).
+   PORTALE NEXT-102. */
+(function () {
+  'use strict';
+  var EVENTI = ['click', 'input', 'change', 'keydown', 'dragstart', 'dragover', 'drop'];
+
+  function DCLogic() { this.state = null; }
+  DCLogic.prototype.setState = function (p) {
+    var prima = this.state || {};
+    var nuovo = typeof p === 'function' ? p(prima) : p;
+    if (!nuovo) return;
+    this.state = Object.assign({}, prima, nuovo);
+    this._pianifica && this._pianifica();
+  };
+  window.DCLogic = DCLogic;
+
+  function valore(expr, scope) {
+    expr = expr.trim();
+    if (expr === 'true') return true;
+    if (expr === 'false') return false;
+    if (/^-?\d+(\.\d+)?$/.test(expr)) return Number(expr);
+    var parti = expr.split('.');
+    var v = scope[parti[0]];
+    for (var i = 1; i < parti.length; i++) { if (v == null) return undefined; v = v[parti[i]]; }
+    return v;
+  }
+  var RE = /\{\{([^}]+)\}\}/g;
+  function interpola(str, scope) {
+    return str.replace(RE, function (_, e) { var v = valore(e, scope); return v == null ? '' : String(v); });
+  }
+  function soloEspressione(str) { var m = /^\s*\{\{([^}]+)\}\}\s*$/.exec(str); return m ? m[1] : null; }
+
+  function disegna(nodo, scope, out, gestori) {
+    if (nodo.nodeType === 3) { out.appendChild(document.createTextNode(interpola(nodo.nodeValue, scope))); return; }
+    if (nodo.nodeType !== 1) return;
+    var tag = nodo.tagName.toLowerCase();
+    if (tag === 'sc-for') {
+      var lista = valore(soloEspressione(nodo.getAttribute('list')) || '', scope) || [];
+      var come = nodo.getAttribute('as') || 'item';
+      for (var i = 0; i < lista.length; i++) {
+        var s2 = Object.create(scope); s2[come] = lista[i];
+        figli(nodo, s2, out, gestori);
+      }
+      return;
+    }
+    if (tag === 'sc-if') {
+      if (valore(soloEspressione(nodo.getAttribute('value')) || '', scope)) figli(nodo, scope, out, gestori);
+      return;
+    }
+    var el = document.createElement(tag === 'textarea' || tag === 'svg' ? tag : tag);
+    if (nodo.namespaceURI && nodo.namespaceURI !== 'http://www.w3.org/1999/xhtml') el = document.createElementNS(nodo.namespaceURI, nodo.tagName);
+    for (var a = 0; a < nodo.attributes.length; a++) {
+      var at = nodo.attributes[a], nome = at.name, val = at.value;
+      if (nome.indexOf('hint-') === 0) continue;
+      if (/^on[a-z]+$/i.test(nome)) {
+        var e = soloEspressione(val); if (!e) continue;
+        var f = valore(e, scope); if (typeof f !== 'function') continue;
+        gestori.push(f);
+        el.setAttribute('data-dc-on-' + nome.slice(2).toLowerCase(), String(gestori.length - 1));
+        continue;
+      }
+      el.setAttribute(nome, interpola(val, scope));
+    }
+    figli(nodo, scope, el, gestori);
+    if (tag === 'textarea') el.value = el.textContent;
+    out.appendChild(el);
+  }
+  function figli(nodo, scope, out, gestori) {
+    var c = nodo.content ? nodo.content.childNodes : nodo.childNodes;
+    for (var i = 0; i < c.length; i++) disegna(c[i], scope, out, gestori);
+  }
+
+  function avvia() {
+    var xdc = document.querySelector('x-dc');
+    var codice = document.querySelector('script[type="text/x-dc"]');
+    if (!xdc || !codice) return;
+    try { if (window.self !== window.top) document.documentElement.classList.add('incorniciata'); } catch (e) { document.documentElement.classList.add('incorniciata'); }
+    var helmet = xdc.querySelector('helmet');
+    if (helmet) { while (helmet.firstChild) document.head.appendChild(helmet.firstChild); helmet.remove(); }
+    var modello = document.createElement('template');
+    modello.innerHTML = xdc.innerHTML;
+    xdc.remove();
+    var radice = document.createElement('div'); radice.id = 'dc-radice';
+    document.body.insertBefore(radice, codice);
+    var Classe = new Function('DCLogic', codice.textContent + '\nreturn Component;')(DCLogic);
+    var comp = new Classe();
+    if (comp.state === undefined) comp.state = null;
+    var gestori = [], inAttesa = false, montato = false;
+    function ridisegna() {
+      inAttesa = false;
+      var nuovi = [];
+      var vals = comp.renderVals ? comp.renderVals() : {};
+      var tmp = document.createElement('div'); tmp.id = 'dc-radice';
+      figli(modello, vals, tmp, nuovi);
+      gestori = nuovi;
+      window.morphdom(radice, tmp, {
+        onBeforeElUpdated: function (da, a) {
+          if (da === document.activeElement && (da.tagName === 'TEXTAREA' || da.tagName === 'INPUT') && da.value === a.value) {
+            for (var i = 0; i < a.attributes.length; i++) if (a.attributes[i].name !== 'value') da.setAttribute(a.attributes[i].name, a.attributes[i].value);
+            return false;
+          }
+          return true;
+        }
+      });
+      if (!montato) { montato = true; comp.componentDidMount && comp.componentDidMount(); }
+    }
+    comp._pianifica = function () { if (!inAttesa) { inAttesa = true; Promise.resolve().then(ridisegna); } };
+    EVENTI.forEach(function (tipo) {
+      radice.addEventListener(tipo, function (ev) {
+        var el = ev.target && ev.target.closest ? ev.target.closest('[data-dc-on-' + tipo + ']') : null;
+        if (!el || !radice.contains(el)) return;
+        var f = gestori[Number(el.getAttribute('data-dc-on-' + tipo))];
+        if (f) f(ev);
+      });
+    });
+    window.addEventListener('pagehide', function () { comp.componentWillUnmount && comp.componentWillUnmount(); });
+    ridisegna();
+    /* dentro il portale: il tema segue quello del portale (regia_tema: chiaro / scuro) */
+    if (document.documentElement.classList.contains('incorniciata')) {
+      var segui = function () {
+        try {
+          var t = localStorage.getItem('regia_tema');
+          try { var pt = window.parent.document.documentElement.getAttribute('data-tema'); if (pt) t = pt; } catch (e) {}
+          localStorage.setItem('next-tema', t === 'chiaro' ? 'giorno' : 'notte');
+          if (comp.state && comp.state.tema) comp.state.tema = null;
+          comp._pianifica();
+        } catch (e) {}
+      };
+      segui();
+      window.addEventListener('storage', function (e) { if (e.key === 'regia_tema') segui(); });
+      try { new MutationObserver(segui).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-tema'] }); } catch (e) {}
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', avvia); else avvia();
+})();
+</script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#0B1119}
+a{color:#0891B2}a:hover{color:#0891B2}
+#menuNextCss{}
+nav[aria-label="Menu Next"] .mn-v{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;color:#9AA8B9;font:600 12.5px 'IBM Plex Sans',Arial,sans-serif;cursor:pointer;list-style:none;white-space:nowrap}
+nav[aria-label="Menu Next"] .mn-v::-webkit-details-marker{display:none}
+nav[aria-label="Menu Next"] .mn-v:hover,nav[aria-label="Menu Next"] .mn-st:hover{background:#151E2A;color:#E6EDF5}
+nav[aria-label="Menu Next"] .mn-chev{margin-left:auto;transition:transform .15s}
+nav[aria-label="Menu Next"] .mn-grp[open] .mn-chev{transform:rotate(180deg)}
+nav[aria-label="Menu Next"] .mn-sub{display:flex;flex-direction:column;gap:1px;margin:1px 0 4px 17px;padding-left:8px;border-left:1px solid #1E2836}
+nav[aria-label="Menu Next"] .mn-st{display:flex;align-items:center;gap:10px;padding:5px 10px;border-radius:8px;color:#9AA8B9;text-decoration:none;font:600 12px 'IBM Plex Sans',Arial,sans-serif;white-space:nowrap}
+nav[aria-label="Menu Next"] .mn-ext{margin-left:auto;color:#7A889A}
+[data-tema]{--sf:#FFFFFF;--sf2:#F6F8FA;--ink:#0F172A;--ink2:#334155;--ink3:#64748B;--ln:#E3E7EC;--acw:#E0F4F9;--rdw:#FEE2E2;--grw:#DCFCE7;--amw:#FEF3C7;--viw:#F0ECFE}
+[data-tema="notte"]{--sf:#162032;--sf2:#0F1623;--ink:#E8EEF5;--ink2:#A3B3C6;--ink3:#8494AB;--ln:#24324A;--acw:#0B2C3A;--rdw:#3B1618;--grw:#0F2E1C;--amw:#33270F;--viw:#2A2147;color-scheme:dark}
+[data-tema="notte"] textarea,[data-tema="notte"] input{color:var(--ink)}
+nav[aria-label="Menu Next"] .mn-riga{position:relative}
+nav[aria-label="Menu Next"] .mn-fuori{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:6px;border:0;background:#151E2A;color:#9AA8B9;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .12s}
+nav[aria-label="Menu Next"] .mn-riga:hover .mn-fuori,nav[aria-label="Menu Next"] .mn-fuori:focus{opacity:1}
+nav[aria-label="Menu Next"] .mn-fuori:hover{color:#22D3EE;background:rgba(34,211,238,.12)}
+@keyframes entra{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+@keyframes pulsa{0%,100%{opacity:1}50%{opacity:.35}}
+html.incorniciata nav[aria-label="Menu Next"]{display:none!important}
+</style>
+</helmet>
+<div data-tema="{{tema}}" style="display: flex; flex-wrap: wrap; min-height: 900px; background: var(--sf2); font-family: Manrope, Arial, sans-serif; color: var(--ink);">
+
+<nav aria-label="Menu Next" style="flex: 0 0 224px; box-sizing: border-box; background: #0B1119; padding: 14px 10px; display: flex; flex-direction: column; gap: 1px; font-family: 'IBM Plex Sans', Arial, sans-serif;">
+<div style="display: flex; align-items: center; gap: 9px; padding: 2px 6px 14px;"><span style="width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #22D3EE, #0891B2); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: #0E141D;">N</span><span style="display: flex; flex-direction: column; color: #E6EDF5;"><b style="font-size: 13.5px;">Next S.r.l.</b><small style="font-size: 10.5px; color: #8D9BAD;">portale gestione</small></span></div>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; color: #9AA8B9; text-decoration: none; font-size: 12.5px; font-weight: 600;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"></path></svg>Panoramica</a>
+<details class="mn-grp"><summary class="mn-v"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg><span>Regia</span><sc-if value="{{waIn.ha}}" hint-placeholder-val="{{true}}"><span class="pulsa" style="margin-left: auto; margin-right: 2px; min-width: 18px; height: 18px; border-radius: 999px; background: #22C55E; color: #0B1119; font-size: 10.5px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; animation: pulsa 1.4s ease-in-out infinite;">{{waIn.n}}</span></sc-if><svg aria-hidden="true" class="mn-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 0;"><path d="M6 9l6 6 6-6"></path></svg></summary>
+<div class="mn-sub">
+<a class="mn-st" href="#"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"></path></svg><span>Chiamate</span></a>
+<a class="mn-st" href="#"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5z"></path></svg><span>Chat</span><sc-if value="{{waIn.ha}}" hint-placeholder-val="{{true}}"><span class="pulsa" style="margin-left: auto; min-width: 18px; height: 18px; border-radius: 999px; background: #22C55E; color: #0B1119; font-size: 10.5px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; animation: pulsa 1.4s ease-in-out infinite;">{{waIn.n}}</span></sc-if></a>
+<a class="mn-st" href="#"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg><span>Liste</span></a>
+</div></details>
+<div style="font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: #5F6E81; font-weight: 800; padding: 12px 10px 4px;">Lavoro</div>
+<div class="mn-riga"><a href="https://nextsrl-sim.github.io/area-lavoro/" aria-current="page" style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; color: #22D3EE; background: rgba(34,211,238,.12); text-decoration: none; font-size: 12.5px; font-weight: 600;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"></rect><rect x="13" y="3" width="8" height="8" rx="1.5"></rect><rect x="3" y="13" width="8" height="8" rx="1.5"></rect><rect x="13" y="13" width="8" height="8" rx="1.5"></rect></svg>Area di lavoro</a><button class="mn-fuori" onClick="{{apriFuoriArea}}" aria-label="Tira fuori Area di lavoro in una finestra" title="Tira fuori la pagina in una finestra (per un altro monitor)"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="14" height="14" rx="2"></rect><path d="M11 3h10v10M21 3l-9 9"></path></svg></button></div>
+<div class="mn-riga"><a href="https://nextsrl-sim.github.io/area-posta/" style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; color: #9AA8B9; text-decoration: none; font-size: 12.5px; font-weight: 600;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg>Caselle di posta</a><button class="mn-fuori" onClick="{{apriFuoriPosta}}" aria-label="Tira fuori Caselle di posta in una finestra" title="Tira fuori la pagina in una finestra (per un altro monitor)"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="14" height="14" rx="2"></rect><path d="M11 3h10v10M21 3l-9 9"></path></svg></button></div>
+<details class="mn-grp" open><summary class="mn-v"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"></path></svg><span>Strumenti</span><svg aria-hidden="true" class="mn-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+<div class="mn-sub">
+<a class="mn-st" href="https://next-srl.odoo.com/odoo" target="_blank" rel="noopener"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><circle cx="17.5" cy="17.5" r="3.5"></circle></svg><span>Odoo</span><svg aria-hidden="true" class="mn-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"></path></svg></a>
+<a class="mn-st" href="https://n8n.srv1030489.hstgr.cloud" target="_blank" rel="noopener"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"></circle><circle cx="19" cy="6" r="2.5"></circle><circle cx="19" cy="18" r="2.5"></circle><path d="M7.5 12h4l5-5M11.5 12l5 5"></path></svg><span>n8n</span><svg aria-hidden="true" class="mn-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"></path></svg></a>
+<a class="mn-st" href="https://supabase.com/dashboard/project/pnxhthrheqeucoisifjw" target="_blank" rel="noopener"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"></ellipse><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"></path></svg><span>Supabase</span><svg aria-hidden="true" class="mn-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"></path></svg></a>
+<a class="mn-st" href="https://online.unicreditcorporate.it/nb/it/uniweb.html" target="_blank" rel="noopener"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-5 9 5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"></path></svg><span>UniCredit</span><svg aria-hidden="true" class="mn-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"></path></svg></a>
+<a class="mn-st" href="https://claude.ai" target="_blank" rel="noopener"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3z"></path><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"></path></svg><span>Claude</span><svg aria-hidden="true" class="mn-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"></path></svg></a>
+</div></details>
+<div style="margin-top: auto; display: flex; align-items: center; gap: 9px; padding: 12px 6px 0; border-top: 1px solid #1A2330; color: #E6EDF5; font-size: 12px;"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1F2B3A; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #A3B1C2;">SB</span><b>Sante</b><button onClick="{{cambiaTema}}" aria-label="{{temaLabel}}" title="{{temaLabel}}" style="margin-left: auto; width: 28px; height: 28px; border-radius: 7px; border: 1px solid #1F2B3A; background: transparent; color: #A3B1C2; cursor: pointer; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{temaIcona}}"></path></svg></button></div>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 24px 30px 48px; display: flex; flex-direction: column; gap: 18px; box-sizing: border-box; zoom: 0.84;">
+
+<div role="tablist" aria-label="Schede dell'area di lavoro" style="display: flex; gap: 4px; border-bottom: 1px solid var(--ln);">
+<a href="https://nextsrl-sim.github.io/area-lavoro/" role="tab" aria-selected="false" style="font-size: 13.5px; font-weight: 700; color: var(--ink2); text-decoration: none; padding: 10px 14px; border-bottom: 2px solid transparent;">Area di lavoro</a>
+<a href="#" role="tab" aria-selected="true" style="font-size: 13.5px; font-weight: 700; color: #0891B2; text-decoration: none; padding: 10px 14px; border-bottom: 2px solid #0891B2;">Automatismi</a>
+</div>
+
+<header style="display: flex; flex-direction: column; gap: 4px;">
+<h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.01em;">Automatismi</h1>
+<span style="font-size: 13px; color: var(--ink2);">Cosa gira da solo e cosa prima chiede a te. Si viene qui quando serve cambiare una regola, non ogni giorno. Dati di esempio.</span>
+</header>
+
+<section aria-label="Elenco automatismi" style="background: var(--sf); border: 1px solid var(--ln); border-radius: 16px; padding: 6px 22px 10px;">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 140px 120px 110px 236px; gap: 14px; padding: 10px 0; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); border-bottom: 1px solid var(--ln);">
+<span>Automatismo</span><span>Oggi</span><span>Ultimo giro</span><span>Errori 7 gg</span><span>Come lavora</span>
+</div>
+<sc-for list="{{auto}}" as="a" hint-placeholder-count="7">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 140px 120px 110px 236px; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--ln);">
+<div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 13.5px; font-weight: 700;">{{a.nome}}</span><span style="font-size: 12px; color: var(--ink2);">{{a.cosa}}</span></div>
+<span style="font-size: 12.5px; color: var(--ink2);">{{a.oggi}}</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--ink3);">{{a.ora}}</span>
+<span style="font-size: 12.5px; font-weight: 700; color: {{a.errCol}};">{{a.err}}</span>
+<div role="radiogroup" aria-label="{{a.nome}}" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: var(--sf2); border-radius: 10px; padding: 3px;">
+<button role="radio" aria-checked="{{a.autoSel}}" onClick="{{a.metAuto}}" style="font: 700 12.5px Manrope, sans-serif; border: 0; border-radius: 8px; height: 32px; cursor: pointer; background: {{a.autoBg}}; color: {{a.autoFg}};">Da solo</button>
+<button role="radio" aria-checked="{{a.chiediSel}}" onClick="{{a.metChiedi}}" style="font: 700 12.5px Manrope, sans-serif; border: 0; border-radius: 8px; height: 32px; cursor: pointer; background: {{a.chiediBg}}; color: {{a.chiediFg}};">Chiede a me</button>
+</div>
+</div>
+</sc-for>
+</section>
+
+<sc-if value="{{waIn.toast}}" hint-placeholder-val="{{true}}">
+<div role="status" aria-live="polite" style="position: fixed; bottom: 88px; right: 28px; z-index: 60; width: 320px; background: var(--sf); border: 1px solid var(--ln); border-left: 4px solid #16A34A; border-radius: 12px; box-shadow: 0 10px 26px rgba(15, 23, 42, .14); padding: 9px 9px 9px 11px; display: flex; flex-direction: column; gap: 6px; animation: entra .25s ease-out 1;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<span style="width: 26px; height: 26px; border-radius: 50%; background: #16A34A; color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex: none;"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5z"></path></svg></span>
+<span style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0; line-height: 1.25;"><b style="font-size: 13px; color: var(--ink);">{{waIn.ultimo.nome}}</b><span style="font-size: 11px; color: var(--ink3);">WhatsApp · {{waIn.ultimo.ruolo}} · adesso</span></span>
+<button onClick="{{waIn.chiudiToast}}" aria-label="Chiudi l'avviso" title="Chiudi" style="width: 26px; height: 26px; border-radius: 7px; border: 0; background: transparent; color: var(--ink3); cursor: pointer; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<sc-if value="{{waIn.ultimo.haVoce}}" hint-placeholder-val="{{true}}"><span style="display: flex; align-items: center; gap: 8px; margin-left: 34px; height: 30px; padding: 0 10px 0 4px; border-radius: 999px; background: var(--grw); color: #15803D; font-size: 11.5px; font-weight: 700; align-self: flex-start;"><button aria-label="Ascolta il vocale" title="Ascolta" style="width: 24px; height: 24px; border-radius: 50%; border: 0; background: #16A34A; color: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;"><svg aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"></path></svg></button><svg aria-hidden="true" width="60" height="14" viewBox="0 0 60 14" fill="#16A34A"><rect x="0" y="5" width="2" height="4" rx="1"></rect><rect x="5" y="3" width="2" height="8" rx="1"></rect><rect x="10" y="1" width="2" height="12" rx="1"></rect><rect x="15" y="4" width="2" height="6" rx="1"></rect><rect x="20" y="2" width="2" height="10" rx="1"></rect><rect x="25" y="5" width="2" height="4" rx="1"></rect><rect x="30" y="3" width="2" height="8" rx="1"></rect><rect x="35" y="0" width="2" height="14" rx="1"></rect><rect x="40" y="4" width="2" height="6" rx="1"></rect><rect x="45" y="2" width="2" height="10" rx="1"></rect><rect x="50" y="5" width="2" height="4" rx="1"></rect><rect x="55" y="4" width="2" height="6" rx="1"></rect></svg>{{waIn.ultimo.voce}}</span><span style="font-size: 10.5px; font-weight: 700; color: var(--ink3); padding-left: 34px; text-transform: uppercase; letter-spacing: .06em;">Trascrizione</span></sc-if>
+<span style="font-size: 12.5px; line-height: 1.45; color: var(--ink); padding-left: 34px;">{{waIn.ultimo.testo}}</span>
+<div style="display: flex; gap: 6px; padding-left: 34px;">
+<button onClick="{{waIn.rispondi}}" style="font: 700 12px Manrope, sans-serif; height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #16A34A; background: #16A34A; color: #FFFFFF; cursor: pointer;">Rispondi qui</button>
+<a href="#" style="font: 700 12px Manrope, sans-serif; height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--ln); background: var(--sf); color: var(--ink2); text-decoration: none; display: inline-flex; align-items: center;">Apri in Chat Next</a>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{wa.chiuso}}" hint-placeholder-val="{{true}}">
+<button onClick="{{wa.apri}}" aria-label="Messaggio veloce WhatsApp" title="Messaggio veloce dal numero Next" style="position: fixed; right: 28px; bottom: 28px; z-index: 40; height: 48px; padding: 0 18px 0 14px; border-radius: 999px; border: 0; background: #16A34A; color: #FFFFFF; font: 700 13.5px Manrope, sans-serif; display: flex; align-items: center; gap: 9px; cursor: pointer; box-shadow: 0 10px 28px rgba(15, 23, 42, .22);"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5z"></path><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 .8a3.5 3.5 0 0 1-1.8-1.8l.8-1-1-2z"></path></svg>Messaggio veloce<sc-if value="{{waIn.ha}}" hint-placeholder-val="{{false}}"><span style="min-width: 20px; height: 20px; border-radius: 999px; background: #FFFFFF; color: #15803D; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px;">{{waIn.n}}</span></sc-if></button>
+</sc-if>
+<sc-if value="{{wa.aperto}}" hint-placeholder-val="{{false}}">
+<section aria-label="Messaggio veloce WhatsApp" style="position: fixed; right: 28px; bottom: 28px; z-index: 45; width: 380px; max-height: calc(100% - 56px); background: var(--sf); border: 1px solid var(--ln); border-radius: 16px; box-shadow: 0 24px 60px rgba(15, 23, 42, .25); display: flex; flex-direction: column; overflow: hidden;">
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 14px; background: #16A34A; color: #FFFFFF;">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5z"></path></svg>
+<span style="display: flex; flex-direction: column; flex-grow: 1; line-height: 1.2;"><b style="font-size: 13.5px;">Messaggio veloce</b><span style="font-size: 11px; opacity: .85;">parte dal numero WhatsApp di Next · resta nel chatter Odoo</span></span>
+<button onClick="{{wa.chiudi}}" aria-label="Chiudi" title="Chiudi" style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(255,255,255,.35); background: transparent; color: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div style="padding: 10px 12px 0;"><label style="display: flex; align-items: center; gap: 8px; height: 40px; border: 1px solid var(--ln); border-radius: 10px; padding: 0 10px; background: var(--sf);"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg><span style="font-size: 12px; font-weight: 700; color: var(--ink2);">A:</span><input aria-label="Cerca il destinatario" onInput="{{wa.cerca}}" placeholder="nome, azienda o telefono…" style="flex-grow: 1; min-width: 0; border: 0; outline: none; font: 400 13.5px Manrope, sans-serif; color: var(--ink); background: transparent;"></label><span style="display: block; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); padding: 8px 2px 0;">{{wa.titoloLista}}</span></div>
+<div role="radiogroup" aria-label="A chi" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px 10px; border-bottom: 1px solid var(--ln);">
+<sc-for list="{{wa.contatti}}" as="k" hint-placeholder-count="4">
+<button role="radio" aria-checked="{{k.sel}}" onClick="{{k.scegli}}" style="font: 700 12px Manrope, sans-serif; height: 30px; padding: 0 10px; border-radius: 999px; cursor: pointer; border: 1px solid {{k.bd}}; background: {{k.bg}}; color: {{k.fg}}; display: flex; align-items: center; gap: 6px;"><span style="width: 7px; height: 7px; border-radius: 50%; background: {{k.pall}};"></span>{{k.nome}}</button>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 8px 14px; background: var(--sf2); border-bottom: 1px solid var(--ln); font-size: 12px;">
+<span><b>{{wa.c.nome}}</b> <span style="color: var(--ink3);">· {{wa.c.ruolo}} · {{wa.c.tel}}</span></span>
+<span style="color: {{wa.c.fc}}; font-weight: 700;">{{wa.c.finestra}}</span>
+</div>
+<div style="flex: 1 1 auto; min-height: 120px; max-height: 240px; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; background: var(--sf2);">
+<sc-for list="{{wa.storia}}" as="h" hint-placeholder-count="3">
+<div style="align-self: {{h.lato}}; max-width: 82%; background: {{h.bg}}; border: 1px solid var(--ln); border-radius: 12px; padding: 7px 10px; font-size: 13px; line-height: 1.45; color: var(--ink);">{{h.testo}}<span style="display: block; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--ink3); margin-top: 2px;">{{h.ora}}</span></div>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--ln);">
+<textarea aria-label="Testo del messaggio" onInput="{{wa.scrivi}}" placeholder="{{wa.c.segnaposto}}" style="box-sizing: border-box; width: 100%; min-height: 64px; border: 1px solid var(--ln); border-radius: 10px; padding: 9px 10px; font: 400 13.5px/1.5 Manrope, sans-serif; color: var(--ink); resize: vertical;">{{wa.testo}}</textarea>
+<div style="display: flex; gap: 8px; align-items: center;">
+<button style="font: 700 13.5px Manrope, sans-serif; height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--ln); background: var(--sf); color: var(--ink2); cursor: pointer;">Allega</button>
+<span style="flex-grow: 1; font-size: 11px; color: var(--ink3);">{{wa.c.nota}}</span>
+<button onClick="{{wa.invia}}" style="font: 700 13.5px Manrope, sans-serif; height: 40px; padding: 0 18px; border-radius: 10px; border: 1px solid #16A34A; background: #16A34A; color: #FFFFFF; cursor: pointer;">{{wa.c.tasto}}</button>
+</div>
+</div>
+</section>
+</sc-if>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+const AUTO = [
+  { id: 'x1', nome: 'Invio delle fatture ai clienti', cosa: 'PDF della fattura per mail, appena confermata', oggi: '5 inviate', ora: '16:40', err: '0', m: 'auto' },
+  { id: 'x7', nome: 'Invio allo SDI', cosa: 'ogni sera alle 23:00', oggi: '3 in programma', ora: 'ieri 23:00', err: '1 scartata', m: 'auto' },
+  { id: 'x9', nome: 'Termine dei 12 giorni per lo SDI', cosa: 'fattura non inviata: avviso all’8° giorno, allarme e WhatsApp dal 10°, telefonata il 12°', oggi: '1 in allarme', ora: '08:00', err: '0', m: 'auto' },
+  { id: 'x2', nome: 'Registrazione fatture passive', cosa: 'da SDI in Odoo, se l’importo torna con l’ordine', oggi: '6 registrate', ora: '09:12', err: '0', m: 'auto' },
+  { id: 'x3', nome: 'Abbinamento dei bonifici in entrata', cosa: 'alla fattura giusta, con la ritenuta', oggi: '9 abbinati', ora: '11:05', err: '0', m: 'auto' },
+  { id: 'x4', nome: 'DDT e conferme d’ordine', cosa: 'allegati alla ricezione e all’ordine', oggi: '4 allegati', ora: '10:40', err: '0', m: 'auto' },
+  { id: 'x5', nome: 'Solleciti documenti ai clienti', cosa: 'dopo 3 giorni senza risposta', oggi: '2 mandati', ora: '15:30', err: '0', m: 'chiedi' },
+  { id: 'x6', nome: 'Generazione degli ordini Odoo', cosa: 'quando il contratto è firmato', oggi: '2 in attesa', ora: '—', err: '0', m: 'chiedi' },
+  { id: 'x8', nome: 'Postino delle caselle', cosa: 'legge e smista ogni mail appena arriva', oggi: '37 lette', ora: '11:14', err: '0', m: 'auto' }
+];
+const WA_IN = [
+  ['paola', 'Grazie, ricevute. Mi manca solo la foto del contatore.'],
+  ['roberto', 'Sono dal cliente di Treviso, firma oggi. Appena ho il contratto firmato te lo giro e lo carichiamo.', '0:24'],
+  ['cliente1', 'Va bene martedì mattina per l’installazione?'],
+  ['ghiotto', 'Le foto le carico stasera.']
+];
+const suona = () => { try { const C = window.AudioContext || window.webkitAudioContext; if (!C) return; const a = new C(); [880, 1175].forEach((f, k) => { const o = a.createOscillator(); const g = a.createGain(); const t0 = a.currentTime + k * 0.14; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.15, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.18); o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + 0.2); }); } catch (e) {} };
+const WA = [
+  { id: 'paola', nome: 'Paola (Solaris)', ruolo: 'pratiche Solaris', tel: '+39 [NUMERO]', aperta: true, storia: [
+    { da: 'lei', ora: '10:12', testo: 'Buongiorno, mi mandate le foto dell’impianto Olivier?' },
+    { da: 'next', ora: '10:14', testo: 'Buongiorno Paola, le ho caricate adesso: le trova al link che le ho mandato per mail.' } ] },
+  { id: 'roberto', nome: 'Roberto Polotto', ruolo: 'commerciale Next', tel: '+39 [NUMERO]', aperta: true, storia: [
+    { da: 'lei', ora: '09:05', testo: 'Oggi pomeriggio sono dal cliente di Treviso.' } ] },
+  { id: 'cristina', nome: 'Cristina', ruolo: 'ufficio Next', tel: '+39 [NUMERO]', aperta: true, storia: [] },
+  { id: 'belloni', nome: 'Alessandro Belloni', ruolo: 'commerciale Next', tel: '+39 [NUMERO]', aperta: false, storia: [] },
+  { id: 'italsol', nome: 'ITALSOL SRL', ruolo: 'fornitore', tel: '+39 [NUMERO]', aperta: false, storia: [] },
+  { id: 'meta51', nome: 'META 51 SRL', ruolo: 'fornitore', tel: '+39 [NUMERO]', aperta: false, storia: [] },
+  { id: 'cliente1', nome: '[CLIENTE] Rossi', ruolo: 'cliente · pratica in corso', tel: '+39 [NUMERO]', aperta: true, storia: [
+    { da: 'lei', ora: 'ieri', testo: 'Quando passate per l’installazione?' } ] },
+  { id: 'cliente2', nome: '[CLIENTE] Bianchi', ruolo: 'cliente · impianto installato', tel: '+39 [NUMERO]', aperta: false, storia: [] },
+  { id: 'ghiotto', nome: 'Ghiotto Impianti', ruolo: 'installatore', tel: '+39 [NUMERO]', aperta: false, storia: [
+    { da: 'next', ora: 'lun', testo: 'Buongiorno, ci servono le foto dell’impianto di [CLIENTE].' } ] }
+];
+class Component extends DCLogic {
+  componentDidMount() {
+    this.giroWa = setInterval(() => {
+      this.setState((st) => {
+        const k = ((st && st.waK) || 0) % WA_IN.length;
+        const chi = WA_IN[k][0]; const testo = WA_IN[k][1]; const voce = WA_IN[k][2] || '';
+        const w = (st && st.wa) || { aperto: false, chi: 'paola', testo: '', inviati: {} };
+        const prima = (w.inviati || {})[chi] || [];
+        return { waK: k + 1, waToast: { chi, testo, voce }, waNon: ((st && st.waNon) || 0) + 1,
+          wa: { ...w, inviati: { ...(w.inviati || {}), [chi]: [...prima, { da: 'lei', ora: 'adesso', testo: voce ? 'Vocale ' + voce + ' · ' + testo : testo }] } } };
+      });
+      /* suona(); — spento finché i messaggi sono d'esempio */
+      clearTimeout(this.viaToast); this.viaToast = setTimeout(() => this.setState({ waToast: null }), 9000);
+    }, 120000);
+  }
+  componentWillUnmount() { clearInterval(this.giroWa); clearTimeout(this.viaToast); }
+  renderVals() {
+    const s = this.state || {};
+    const modi = s.modi || {};
+    const auto = AUTO.map((x) => {
+      const m = modi[x.id] || x.m;
+      return { ...x, errCol: x.err === '0' ? '#15803D' : '#B91C1C',
+        autoSel: m === 'auto' ? 'true' : 'false', chiediSel: m === 'chiedi' ? 'true' : 'false',
+        autoBg: m === 'auto' ? '#0891B2' : 'transparent', autoFg: m === 'auto' ? '#FFFFFF' : 'var(--ink2)',
+        chiediBg: m === 'chiedi' ? 'var(--sf)' : 'transparent', chiediFg: m === 'chiedi' ? 'var(--ink)' : 'var(--ink2)',
+        metAuto: () => this.setState({ modi: { ...modi, [x.id]: 'auto' } }), metChiedi: () => this.setState({ modi: { ...modi, [x.id]: 'chiedi' } }) };
+    });
+    let temaV = 'giorno';
+    try { temaV = (this.state && this.state.tema) || window.localStorage.getItem('next-tema') || 'giorno'; } catch (e) {}
+    const temaX = { tema: temaV, temaLabel: temaV === 'notte' ? 'Passa al tema di giorno' : 'Passa al tema di notte', temaIcona: temaV === 'notte' ? 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4' : 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+      cambiaTema: () => { const n = temaV === 'notte' ? 'giorno' : 'notte'; this.setState({ tema: n }); try { window.localStorage.setItem('next-tema', n); } catch (e) {} } };
+    const fuoriPagina = (url, nome) => () => { try { window.open(url, 'next-pagina-' + nome, 'popup,width=1320,height=900'); } catch (e) {} };
+    const apriFuoriArea = fuoriPagina('https://nextsrl-sim.github.io/area-lavoro/', 'area');
+    const apriFuoriPosta = fuoriPagina('https://nextsrl-sim.github.io/area-posta/', 'posta');
+    const waS = s.wa || { aperto: false, chi: 'paola', testo: '', inviati: {} };
+    const setWa = (x) => this.setState({ wa: { ...waS, ...x } });
+    const wc = WA.find((k) => k.id === waS.chi) || WA[0];
+    const extra = (waS.inviati || {})[wc.id] || [];
+    const tw = s.waToast;
+    const twc = tw ? (WA.find((k) => k.id === tw.chi) || WA[0]) : null;
+    const waIn = { ha: (s.waNon || 0) > 0, n: String(s.waNon || 0), toast: !!tw,
+      ultimo: tw ? { nome: twc.nome, ruolo: twc.ruolo, testo: tw.testo, voce: tw.voce || '', haVoce: !!tw.voce } : {},
+      chiudiToast: () => this.setState({ waToast: null }),
+      rispondi: () => this.setState({ waToast: null, waNon: 0, wa: { ...waS, aperto: true, chi: tw ? tw.chi : waS.chi } }) };
+    const wa = { aperto: !!waS.aperto, chiuso: !waS.aperto, testo: waS.testo || '',
+      apri: () => this.setState({ waNon: 0, wa: { ...waS, aperto: true } }), chiudi: () => setWa({ aperto: false }),
+      scrivi: (e) => setWa({ testo: e && e.target ? e.target.value : '' }),
+      invia: () => { const t = (waS.testo || '').trim(); if (!t) return; setWa({ testo: '', inviati: { ...(waS.inviati || {}), [wc.id]: [...extra, { da: 'next', ora: 'ora', testo: wc.aperta ? t : '[Modello di ricontatto] ' + t }] } }); },
+      cerca: (e) => setWa({ cerca: e && e.target ? e.target.value : '' }),
+      titoloLista: (waS.cerca || '').trim() ? 'Dalla rubrica' : 'Recenti',
+      contatti: (((waS.cerca || '').trim()) ? WA.filter((k) => (k.nome + ' ' + k.ruolo).toLowerCase().includes(waS.cerca.trim().toLowerCase())) : WA.slice(0, 4).concat(WA.find((k) => k.id === waS.chi && WA.indexOf(k) > 3) ? [wc] : [])).map((k) => { const sel = k.id === wc.id; return { ...k, sel: sel ? 'true' : 'false', bd: sel ? '#16A34A' : 'var(--ln)', bg: sel ? 'var(--grw)' : 'var(--sf)', fg: sel ? '#15803D' : 'var(--ink2)', pall: k.aperta ? '#16A34A' : '#B45309', scegli: () => setWa({ chi: k.id }) }; }),
+      c: { ...wc, finestra: wc.aperta ? 'Conversazione aperta: il messaggio parte così come lo scrivi' : 'Conversazione chiusa da più di 24 ore: parte il modello di ricontatto approvato',
+        fc: wc.aperta ? '#15803D' : '#B45309', tasto: wc.aperta ? 'Invia' : 'Invia modello', nota: wc.aperta ? '' : 'WhatsApp non permette testo libero dopo 24 ore',
+        segnaposto: wc.aperta ? 'Scrivi a ' + wc.nome + '…' : 'Testo da mettere nel modello di ricontatto…' },
+      storia: [...wc.storia, ...extra].map((h) => ({ ...h, lato: h.da === 'next' ? 'flex-end' : 'flex-start', bg: h.da === 'next' ? 'var(--grw)' : 'var(--sf)' })) };
+    return { waIn, wa, ...temaX, apriFuoriArea, apriFuoriPosta, auto };
+  }
+}
+</script>
+</body>
+</html>
