@@ -384,7 +384,7 @@ class Component extends DCLogic {
         fc: wc.aperta ? '#15803D' : '#B45309', tasto: wc.aperta ? 'Invia' : 'Invia modello', nota: wc.aperta ? '' : 'WhatsApp non permette testo libero dopo 24 ore',
         segnaposto: wc.aperta ? 'Scrivi a ' + wc.nome + '…' : 'Testo da mettere nel modello di ricontatto…' },
       storia: [...wc.storia, ...extra].map((h) => ({ ...h, lato: h.da === 'next' ? 'flex-end' : 'flex-start', bg: h.da === 'next' ? 'var(--grw)' : 'var(--sf)' })) };
-    const inFinestra = () => { try { window.open('https://nextsrl-sim.github.io/area-automatismi/#finestra', 'next-scheda-auto', 'popup,width=1320,height=900'); } catch (e) {} };
+    const inFinestra = () => { try { window.open('https://nextsrl-sim.github.io/area-automatismi/?v=' + Date.now() + '#finestra', 'next-scheda-auto', 'popup,width=1320,height=900'); } catch (e) {} };
     return { inFinestra, waIn, wa, ...temaX, apriFuoriArea, apriFuoriPosta, auto };
   }
 }
