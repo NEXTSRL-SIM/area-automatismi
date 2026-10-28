@@ -125,6 +125,36 @@
     });
     window.addEventListener('pagehide', function () { comp.componentWillUnmount && comp.componentWillUnmount(); });
     ridisegna();
+    /* finestra staccata (altro monitor): una barra in alto col nome di quello che si vede e il tasto per chiuderla.
+       Chiudendola, la casella torna al suo posto nella pagina da cui è partita. */
+    var h0 = (location.hash || '').slice(1);
+    if (h0 === 'finestra' || h0.indexOf('solo-') === 0) {
+      var st = document.createElement('style');
+      st.textContent = 'html.con-barra body{padding-top:46px!important}' +
+        '#dc-barra{position:fixed;top:0;left:0;right:0;height:46px;z-index:9999;display:flex;align-items:center;gap:10px;padding:0 10px 0 16px;box-sizing:border-box;background:var(--sf2);border-bottom:1px solid var(--ln);color:var(--ink);font:700 13px Manrope,"IBM Plex Sans",Arial,sans-serif}' +
+        '#dc-barra .pt{width:8px;height:8px;border-radius:50%;background:#0891B2;flex:0 0 auto}' +
+        '#dc-barra .tt{flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+        '#dc-barra button{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px 0 9px;border-radius:8px;border:1px solid var(--ln);background:var(--sf);color:var(--ink);font:700 12.5px Manrope,Arial,sans-serif;cursor:pointer}' +
+        '#dc-barra button:hover{border-color:#DC2626;color:#B91C1C}';
+      document.head.appendChild(st);
+      var barra = document.createElement('div'); barra.id = 'dc-barra'; barra.setAttribute('role', 'banner');
+      barra.innerHTML = '<span class="pt"></span><span class="tt"></span>' +
+        '<button type="button" title="Chiudi questa finestra: torna al suo posto nel portale"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>Chiudi</button>';
+      barra.querySelector('button').addEventListener('click', function () { try { window.close(); } catch (e) {} });
+      document.body.insertBefore(barra, document.body.firstChild);
+      document.documentElement.classList.add('con-barra');
+      var base = document.title.replace(/^Next\s*·\s*/i, '').replace(/\s*—.*$/, '') || 'Next';
+      base = base.charAt(0).toUpperCase() + base.slice(1);
+      var allinea = function () {
+        var t = radice.querySelector('[data-tema]'); if (t) barra.setAttribute('data-tema', t.getAttribute('data-tema') || '');
+        var h = radice.querySelector('.solo-tieni h2, .solo-tieni h3');
+        var nome = h && h.textContent.trim() ? base + ' · ' + h.textContent.trim() : base;
+        var tt = barra.querySelector('.tt'); if (tt.textContent !== nome) tt.textContent = nome;
+        if (document.title !== 'Next · ' + nome) document.title = 'Next · ' + nome;
+      };
+      allinea();
+      new MutationObserver(allinea).observe(radice, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-tema'] });
+    }
     /* dentro il portale: il tema segue quello del portale (regia_tema: chiaro / scuro) */
     if (document.documentElement.classList.contains('incorniciata')) {
       var segui = function () {
@@ -330,7 +360,7 @@ class Component extends DCLogic {
     if (this.waVeroAvvia) this.waVeroAvvia();
     try { const h0 = (window.location.hash || '').slice(1);
       if (h0 === 'finestra') document.documentElement.classList.add('finestra');
-      if (h0.indexOf('solo-') === 0) { this.solo = h0.slice(5); document.documentElement.classList.add('solo'); this.setState({ solo: this.solo }); document.title = 'Next · automatismi'; }
+      if (h0.indexOf('solo-') === 0) { this.solo = h0.slice(5); document.documentElement.classList.add('solo'); this.setState({ solo: this.solo }); document.title = 'Next · Automatismi'; }
     } catch (e) {}
     /* in produzione i WhatsApp d'esempio non arrivano: si vedranno solo quelli veri */
     this.giroWa = false && setInterval(() => {
