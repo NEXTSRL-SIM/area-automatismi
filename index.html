@@ -170,6 +170,11 @@ nav[aria-label="Menu Next"] .mn-fuori:hover{color:#22D3EE;background:rgba(34,211
 @keyframes entra{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
 @keyframes pulsa{0%,100%{opacity:1}50%{opacity:.35}}
 *{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+html.finestra nav[aria-label="Menu Next"],html.solo nav[aria-label="Menu Next"]{display:none!important}
+html.solo main{padding:10px!important;gap:0!important}
+html.solo main > *:not(.solo-tieni){display:none!important}
+html.solo .solo-tieni{grid-template-columns:1fr!important}
+html.solo .solo-tieni > *{grid-column:1 / -1!important}
 html.incorniciata nav[aria-label="Menu Next"]{display:none!important}
 </style>
 </helmet>
@@ -204,6 +209,7 @@ html.incorniciata nav[aria-label="Menu Next"]{display:none!important}
 <a href="https://nextsrl-sim.github.io/area-lavoro/" role="tab" aria-selected="false" style="font-size: 13.5px; font-weight: 700; color: var(--ink2); text-decoration: none; padding: 10px 14px; border-bottom: 2px solid transparent;">Area di lavoro</a>
 <a href="https://nextsrl-sim.github.io/area-posta/" role="tab" aria-selected="false" style="font-size: 13.5px; font-weight: 700; color: var(--ink2); text-decoration: none; padding: 10px 14px; border-bottom: 2px solid transparent;">Posta</a>
 <a href="#" role="tab" aria-selected="true" style="font-size: 13.5px; font-weight: 700; color: #0891B2; text-decoration: none; padding: 10px 14px; border-bottom: 2px solid #0891B2;">Automatismi</a>
+<button onClick="{{inFinestra}}" title="Apri questa scheda in una finestra, da spostare su un altro monitor" aria-label="Apri questa scheda in una finestra" style="margin-left: auto; align-self: center; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--ln); background: var(--sf); color: var(--ink2); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="14" height="14" rx="2"></rect><path d="M11 3h10v10M21 3l-9 9"></path></svg></button>
 </div>
 
 <header style="display: flex; flex-direction: column; gap: 4px;">
@@ -320,6 +326,10 @@ const WA = [
 ];
 class Component extends DCLogic {
   componentDidMount() {
+    try { const h0 = (window.location.hash || '').slice(1);
+      if (h0 === 'finestra') document.documentElement.classList.add('finestra');
+      if (h0.indexOf('solo-') === 0) { this.solo = h0.slice(5); document.documentElement.classList.add('solo'); this.setState({ solo: this.solo }); document.title = 'Next · automatismi'; }
+    } catch (e) {}
     /* in produzione i WhatsApp d'esempio non arrivano: si vedranno solo quelli veri */
     this.giroWa = false && setInterval(() => {
       this.setState((st) => {
@@ -374,7 +384,8 @@ class Component extends DCLogic {
         fc: wc.aperta ? '#15803D' : '#B45309', tasto: wc.aperta ? 'Invia' : 'Invia modello', nota: wc.aperta ? '' : 'WhatsApp non permette testo libero dopo 24 ore',
         segnaposto: wc.aperta ? 'Scrivi a ' + wc.nome + '…' : 'Testo da mettere nel modello di ricontatto…' },
       storia: [...wc.storia, ...extra].map((h) => ({ ...h, lato: h.da === 'next' ? 'flex-end' : 'flex-start', bg: h.da === 'next' ? 'var(--grw)' : 'var(--sf)' })) };
-    return { waIn, wa, ...temaX, apriFuoriArea, apriFuoriPosta, auto };
+    const inFinestra = () => { try { window.open('https://nextsrl-sim.github.io/area-automatismi/#finestra', 'next-scheda-auto', 'popup,width=1320,height=900'); } catch (e) {} };
+    return { inFinestra, waIn, wa, ...temaX, apriFuoriArea, apriFuoriPosta, auto };
   }
 }
 </script>
