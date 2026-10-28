@@ -84,6 +84,13 @@
     var xdc = document.querySelector('x-dc');
     var codice = document.querySelector('script[type="text/x-dc"]');
     if (!xdc || !codice) return;
+    /* l'accesso del portale vale anche quando la pagina è aperta da sola (app sul desktop, altro monitor):
+       chi entra dal portale lo lascia su questo computer, la pagina aperta da sola lo ritrova. */
+    try {
+      var ps = sessionStorage.getItem('regia_pass');
+      if (ps) { localStorage.setItem('next_regia_pass', ps); var ch = sessionStorage.getItem('regia_chi'); if (ch) localStorage.setItem('next_regia_chi', ch); }
+      else { var pl = localStorage.getItem('next_regia_pass'); if (pl) { sessionStorage.setItem('regia_pass', pl); var cl = localStorage.getItem('next_regia_chi'); if (cl) sessionStorage.setItem('regia_chi', cl); } }
+    } catch (e) {}
     try { if (window.self !== window.top) document.documentElement.classList.add('incorniciata'); } catch (e) { document.documentElement.classList.add('incorniciata'); }
     var helmet = xdc.querySelector('helmet');
     if (helmet) { while (helmet.firstChild) document.head.appendChild(helmet.firstChild); helmet.remove(); }
